@@ -1,12 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import HeroCarousel from './HeroCarousel'
 import ContentRow from './ContentRow'
 import StatsStrip from './StatsStrip'
 import ContinueListening from './ContinueListening'
 import ContentCard from './ContentCard'
+import { fetchCatalog, type ContentCatalog } from '../services/contentApi'
 import {
-  audiobooks, dramas, stories, books, podcasts, trending, continueListening,
-  realityShows, songs,
+  audiobooks as mockAudiobooks,
+  dramas as mockDramas,
+  stories as mockStories,
+  books as mockBooks,
+  podcasts as mockPodcasts,
+  trending as mockTrending,
+  continueListening as mockContinueListening,
+  realityShows as mockRealityShows,
+  songs as mockSongs,
   type Content, type ContentType,
 } from '../data/mockData'
 
@@ -16,11 +24,9 @@ interface HomePageProps {
   searchQuery: string
 }
 
-const allContent = [...audiobooks, ...dramas, ...stories, ...books, ...podcasts, ...realityShows, ...songs]
-
-function SearchResults({ query, onPlay }: { query: string; onPlay: (item: Content) => void }) {
+function SearchResults({ query, onPlay, items }: { query: string; onPlay: (item: Content) => void; items: Content[] }) {
   const q = query.toLowerCase()
-  const results = allContent.filter(item =>
+  const results = items.filter(item =>
     item.title.toLowerCase().includes(q) ||
     item.author.toLowerCase().includes(q) ||
     item.category.toLowerCase().includes(q) ||
@@ -54,16 +60,7 @@ function SearchResults({ query, onPlay }: { query: string; onPlay: (item: Conten
   )
 }
 
-function FilteredView({ type, onPlay }: { type: ContentType; onPlay: (item: Content) => void }) {
-  const dataMap: Record<ContentType, Content[]> = {
-    audiobook: audiobooks,
-    drama: dramas,
-    story: stories,
-    book: books,
-    podcast: podcasts,
-    reality: realityShows,
-    song: songs,
-  }
+function FilteredView({ type, onPlay, items }: { type: ContentType; onPlay: (item: Content) => void; items: Content[] }) {
   const labels: Record<ContentType, string> = {
     audiobook: 'Audiobooks',
     drama: 'Drama Series',
@@ -77,8 +74,6 @@ function FilteredView({ type, onPlay }: { type: ContentType; onPlay: (item: Cont
     reality: 'Free episodes from YouTube — India\'s Got Latent, Shark Tank India, TVF & more',
     song: 'Click any song to open its official music video on YouTube',
   }
-  const items = dataMap[type]
-
   return (
     <div style={{ padding: '32px 24px' }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 800, margin: '0 0 4px', letterSpacing: '-0.5px' }}>
@@ -247,36 +242,74 @@ function SongRow({ item, onPlay }: { item: Content; onPlay: (item: Content) => v
 }
 
 export default function HomePage({ activeCategory, onPlay, searchQuery }: HomePageProps) {
+  const [catalog, setCatalog] = useState<ContentCatalog | null>(null)
+
+  useEffect(() => {
+    fetchCatalog().then(setCatalog).catch(() => setCatalog(null))
+  }, [])
+
+  const data = useMemo(() => ({
+    heroItems: catalog?.heroItems ?? [] as Content[],
+    audiobooks: catalog?.audiobooks ?? mockAudiobooks,
+    dramas: catalog?.dramas ?? mockDramas,
+    stories: catalog?.stories ?? mockStories,
+    books: catalog?.books ?? mockBooks,
+    podcasts: catalog?.podcasts ?? mockPodcasts,
+    realityShows: catalog?.realityShows ?? mockRealityShows,
+    songs: catalog?.songs ?? mockSongs,
+    trending: catalog?.trending ?? mockTrending,
+    continueListening: catalog?.continueListening ?? mockContinueListening,
+  }), [catalog])
+
+  const allContent = useMemo(() => [
+    ...data.audiobooks,
+    ...data.dramas,
+    ...data.stories,
+    ...data.books,
+    ...data.podcasts,
+    ...data.realityShows,
+    ...data.songs,
+  ], [data])
+
   if (searchQuery.trim()) {
-    return <SearchResults query={searchQuery.trim()} onPlay={onPlay} />
+    return <SearchResults query={searchQuery.trim()} onPlay={onPlay} items={allContent} />
   }
 
   if (activeCategory !== 'all') {
-    return <FilteredView type={activeCategory as ContentType} onPlay={onPlay} />
+    const type = activeCategory as ContentType
+    const items = {
+      audiobook: data.audiobooks,
+      drama: data.dramas,
+      story: data.stories,
+      book: data.books,
+      podcast: data.podcasts,
+      reality: data.realityShows,
+      song: data.songs,
+    }[type] ?? []
+    return <FilteredView type={type} onPlay={onPlay} items={items} />
   }
 
   return (
     <div>
-      <HeroCarousel onPlay={onPlay} />
+      <HeroCarousel items={data.heroItems} onPlay={onPlay} />
       <StatsStrip />
-      <ContinueListening items={continueListening} onPlay={onPlay} />
+      <ContinueListening items={data.continueListening} onPlay={onPlay} />
 
       <ContentRow
         title="🔥 Trending Now"
         subtitle="Most popular across all categories this week"
-        items={[...trending, ...realityShows.filter(r => r.isTrending)]}
+        items={[...data.trending, ...data.realityShows.filter((r: Content) => r.isTrending)]}
         onPlay={onPlay}
         cardSize="md"
         accentColor="var(--amber)"
       />
 
-      {/* Reality Shows — India's Got Latent, Shark Tank, TVF */}
       <ThemedSection
         emoji="📺"
         eyebrow="100% Free · No Subscription"
         title="Reality Shows"
         description="India's Got Latent, Shark Tank India, Kota Factory & more — full episodes free on YouTube"
-        items={realityShows}
+        items={data.realityShows}
         onPlay={onPlay}
         cardWidth={210}
         accentColor="#FF6B35"
@@ -287,16 +320,14 @@ export default function HomePage({ activeCategory, onPlay, searchQuery }: HomePa
         btnBorder="rgba(255,107,53,0.3)"
       />
 
-      {/* Songs */}
-      <SongsSection items={songs} onPlay={onPlay} />
+      <SongsSection items={data.songs} onPlay={onPlay} />
 
-      {/* Drama Series */}
       <ThemedSection
         emoji="🎭"
         eyebrow="Featured on ReadSphere"
         title="Drama Series"
         description="Binge-worthy audio dramas — romance, crime, thriller & more"
-        items={dramas}
+        items={data.dramas}
         onPlay={onPlay}
         cardWidth={200}
         accentColor="var(--amber)"
@@ -307,13 +338,12 @@ export default function HomePage({ activeCategory, onPlay, searchQuery }: HomePa
         btnBorder="rgba(245,158,11,0.3)"
       />
 
-      {/* Short Stories */}
       <ThemedSection
         emoji="✨"
         eyebrow="Quick Reads & Listens"
         title="Short Stories"
         description="5–15 min stories in Hindi & English — perfect for your commute"
-        items={stories}
+        items={data.stories}
         onPlay={onPlay}
         cardWidth={172}
         accentColor="var(--pink)"
@@ -327,7 +357,7 @@ export default function HomePage({ activeCategory, onPlay, searchQuery }: HomePa
       <ContentRow
         title="🎧 Audiobooks"
         subtitle="Listen to bestsellers narrated by world-class voices"
-        items={audiobooks}
+        items={data.audiobooks}
         onPlay={onPlay}
         cardSize="lg"
         accentColor="var(--violet-light)"
@@ -336,7 +366,7 @@ export default function HomePage({ activeCategory, onPlay, searchQuery }: HomePa
       <ContentRow
         title="📖 Ebooks"
         subtitle="Thousands of books — read online, anytime"
-        items={books}
+        items={data.books}
         onPlay={onPlay}
         cardSize="lg"
         accentColor="var(--teal)"
@@ -345,13 +375,12 @@ export default function HomePage({ activeCategory, onPlay, searchQuery }: HomePa
       <ContentRow
         title="🎙 Podcasts"
         subtitle="Insightful conversations and stories"
-        items={podcasts}
+        items={data.podcasts}
         onPlay={onPlay}
         cardSize="md"
         accentColor="var(--green)"
       />
 
-      {/* Gamification strip */}
       <div style={{ margin: '0 24px 48px' }}>
         <div style={{
           background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(236,72,153,0.1))',

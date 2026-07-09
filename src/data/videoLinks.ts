@@ -281,9 +281,7 @@ export const videoLinks: VideoLink[] = [
     durationLabel: '2h 45m',
     verified: false,
   },
-]
-
-  // ── Reality Shows ─────────────────────────────────────────────────────────
+// ── Reality Shows ─────────────────────────────────────────────────────────
   {
     contentId: 'rv-1',
     videoId: 'hLLlQzJBDrs',         // India's Got Latent S1 Ep1 – Samay Raina (official upload)

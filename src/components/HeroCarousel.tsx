@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { heroItems, typeConfig, type Content } from '../data/mockData'
+import { typeConfig, type Content } from '../data/mockData'
 
 interface HeroCarouselProps {
+  items: Content[]
   onPlay: (item: Content) => void
 }
 
@@ -20,7 +21,7 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
-export default function HeroCarousel({ onPlay }: HeroCarouselProps) {
+export default function HeroCarousel({ items, onPlay }: HeroCarouselProps) {
   const [active, setActive] = useState(0)
   const [animating, setAnimating] = useState(false)
 
@@ -34,13 +35,23 @@ export default function HeroCarousel({ onPlay }: HeroCarouselProps) {
   }, [animating])
 
   useEffect(() => {
+    if (!items.length) return
+    setActive(current => (current >= items.length ? 0 : current))
+  }, [items.length])
+
+  useEffect(() => {
+    if (!items.length) return
     const timer = setInterval(() => {
-      goTo((active + 1) % heroItems.length)
+      goTo((active + 1) % items.length)
     }, 6000)
     return () => clearInterval(timer)
-  }, [active, goTo])
+  }, [active, goTo, items.length])
 
-  const item = heroItems[active]
+  if (!items.length) {
+    return null
+  }
+
+  const item = items[active]
   const cfg = typeConfig[item.type]
 
   return (
@@ -173,7 +184,7 @@ export default function HeroCarousel({ onPlay }: HeroCarouselProps) {
         position: 'absolute', bottom: '24px', right: '40px',
         display: 'flex', gap: '8px', alignItems: 'center',
       }}>
-        {heroItems.map((_, i) => (
+        {items.map((_, i) => (
           <button
             key={i}
             onClick={() => goTo(i)}
