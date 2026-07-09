@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --bg: #07070F;
+  --bg-card: #0C0C1A;
+  --bg-elevated: #121224;
+  --bg-hover: #161628;
+  --text: #EDE8FF;
+  --text-muted: #8A82B4;
+  --text-dim: #504C6E;
+  --violet: #7C3AED;
+  --violet-mid: #6D28D9;
+  --violet-light: #A78BFA;
+  --violet-glow: rgba(124, 58, 237, 0.22);
+  --violet-glow-strong: rgba(124, 58, 237, 0.45);
+  --amber: #F59E0B;
+  --amber-light: #FCD34D;
+  --amber-glow: rgba(245, 158, 11, 0.22);
+  --pink: #EC4899;
+  --pink-light: #F9A8D4;
+  --pink-glow: rgba(236, 72, 153, 0.22);
+  --teal: #06B6D4;
+  --teal-glow: rgba(6, 182, 212, 0.22);
+  --green: #10B981;
+  --green-glow: rgba(16, 185, 129, 0.22);
+  --orange: #F97316;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-bright: rgba(255, 255, 255, 0.12);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-display);
+}
+
+*::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.28);
+  border-radius: 99px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.28) transparent;
+}
