@@ -170,7 +170,8 @@ export async function startServer(port = 3001) {
     res.end(JSON.stringify({ error: 'Not found' }))
   })
 
-  await new Promise(resolve => server.listen(port, '127.0.0.1', resolve))
+  const host = process.env.HOST || '0.0.0.0'
+  await new Promise(resolve => server.listen(port, host, resolve))
   return server
 }
 
